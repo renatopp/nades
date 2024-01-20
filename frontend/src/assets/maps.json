@@ -1,0 +1,65 @@
+{
+	"de_ancient": {
+		"enabled": true,
+		"name": "Ancient",
+		"background": "bg.webp",
+		"radar": "radar.png",
+		"logo": "logo.webp"
+	},
+	"de_anubis": {
+		"enabled": true,
+		"name": "Anubis",
+		"background": "bg.webp",
+		"radar": "radar.png",
+		"logo": "logo.webp"
+	},
+	"de_dust2": {
+		"enabled": true,
+		"name": "Dust 2",
+		"background": "bg.webp",
+		"radar": "radar.png",
+		"logo": "logo.webp"
+	},
+	"de_train": {
+		"enabled": false,
+		"name": "Train",
+		"background": "bg.webp",
+		"radar": "radar.png",
+		"logo": "logo.webp"
+	},
+	"de_inferno": {
+		"enabled": true,
+		"name": "Inferno",
+		"background": "bg.webp",
+		"radar": "radar.png",
+		"logo": "logo.webp"
+	},
+	"de_mirage": {
+		"enabled": true,
+		"name": "Mirage",
+		"background": "bg.webp",
+		"radar": "radar.png",
+		"logo": "logo.webp"
+	},
+	"de_nuke": {
+		"enabled": true,
+		"name": "Nuke",
+		"background": "bg.webp",
+		"radar": "radar.png",
+		"logo": "logo.webp"
+	},
+	"de_overpass": {
+		"enabled": true,
+		"name": "Overpass",
+		"background": "bg.webp",
+		"radar": "radar.png",
+		"logo": "logo.webp"
+	},
+	"de_vertigo": {
+		"enabled": true,
+		"name": "Vertigo",
+		"background": "bg.webp",
+		"radar": "radar.png",
+		"logo": "logo.webp"
+	}
+}

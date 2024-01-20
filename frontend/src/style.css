@@ -1,0 +1,21 @@
+html,
+body {
+	padding: 0;
+	margin: 0 !important;
+	overflow: hidden;
+}
+
+.file-select,
+.file-paste {
+	padding: 5px 10px;
+	font-weight: normal;
+}
+
+.file-select>*,
+.file-paste>* {
+	font-weight: normal !important;
+}
+
+.ssaction {
+	scale: 0.8;
+}
