@@ -3,16 +3,19 @@ import Card from 'primevue/card';
 import Button from 'primevue/button'
 import rawMaps from '../assets/maps.json'
 
-const maps = []
+function getMaps() {
+  const maps = []
+  for (const id in rawMaps) {
+    const map = rawMaps[id]
+    if (!map.enabled) continue
 
-for (const id in rawMaps) {
-	const map = rawMaps[id]
-	if (!map.enabled) continue
+    maps.push({
+      id,
+      ...rawMaps[id]
+    })
+  }
 
-	maps.push({
-		id,
-		...rawMaps[id]
-	})
+  return maps
 }
 
 function getBackground(id) {
@@ -28,7 +31,7 @@ function getLogo(id) {
 <template>
 	<div class="home flex align-items-center justify-content-center h-screen w-screen">
 		<div class="main flex align-items-center justify-content-center h-screen w-screen">
-			<router-link class="banner flex-1" v-for="(map, i) in maps" :key="i" :to="'/map/' + map.id">
+			<router-link class="banner flex-1" v-for="(map, i) in getMaps()" :key="i" :to="'/map/' + map.id">
 				<div class="bg" v-bind:style="{ backgroundImage: 'url(\'' + getBackground(map.id) + ' \')' }"></div>
 				<img :src="getLogo(map.id)" class="logo" />
 			</router-link>

@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref } from 'vue'
+import { onMounted, onUnmounted, ref } from 'vue'
 import InputText from 'primevue/inputtext';
 import Textarea from 'primevue/textarea';
 import Button from 'primevue/button';
@@ -35,6 +35,7 @@ function selectVariant(variant, nade) {
 }
 
 function updateVariant() {
+  console.log(selectedVariant.value)
 	UpdateVariant(selectedVariant.value)
 }
 
@@ -46,14 +47,25 @@ function deleteNade() {
 	radar.value.deleteNadeNode()
 }
 
+function getImageEndpoint(type) {
+  return `${map.value}/${selectedVariant.value.id}/${type}`
+}
+
+function back() {
+  location.replace("/");
+}
+
 </script>
 
 <template>
 	<div class="operation">
-		<router-link class="link" :to="'/'">
-			<i class="pi pi-angle-left" style="font-size: 1.5rem"></i>
+		<a class="link" @click="back" href="" style="z-index: 100;">
+      <div>
+
+        <i class="pi pi-angle-left" style="font-size: 1.5rem"></i>
+      </div>
 			<!-- {{ map }} -->
-		</router-link>
+		</a>
 	</div>
 
 	<div class="flex align-items-stretch justify-content-center h-screen w-screen">
@@ -82,7 +94,7 @@ function deleteNade() {
 
 			<!-- VARIANT SELECTED -->
 			<div v-if="selectedNade && selectedVariant">
-				<Screenshot label="Throw Image" v-model="selectedVariant.throwImage" @change="updateVariant" />
+				<Screenshot label="Throw Image" :url="getImageEndpoint('throw')" v-model="selectedVariant.throwImage" @change="updateVariant" />
 
 				<div>
 					<div class="flex">
@@ -100,10 +112,10 @@ function deleteNade() {
 
 				<div class="flex gap-2">
 					<div class="flex-1">
-						<Screenshot label="Lineup Image" v-model="selectedVariant.lineupImage" @change="updateVariant" />
+						<Screenshot label="Lineup Image" :url="getImageEndpoint('lineup')" v-model="selectedVariant.lineupImage" @change="updateVariant" />
 					</div>
 					<div class="flex-1">
-						<Screenshot label="Position Image" v-model="selectedVariant.positionImage" @change="updateVariant" />
+						<Screenshot label="Position Image" :url="getImageEndpoint('position')" v-model="selectedVariant.positionImage" @change="updateVariant" />
 					</div>
 				</div>
 			</div>

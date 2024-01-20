@@ -1,113 +1,189 @@
 <script setup>
-import { defineModel, defineEmits, defineProps } from 'vue'
-import Button from 'primevue/button';
-import Panel from 'primevue/panel';
-import Image from 'primevue/image';
-import SelectButton from 'primevue/selectbutton';
-import FileUpload from 'primevue/fileupload';
-import imageCompression from 'browser-image-compression'
+import { defineModel, defineEmits, defineProps, ref, onMounted } from "vue";
+import LZString from "lz-string";
+import Button from "primevue/button";
+import Panel from "primevue/panel";
+import Image from "primevue/image";
+import SelectButton from "primevue/selectbutton";
+import FileUpload from "primevue/fileupload";
+import ProgressBar from 'primevue/progressbar';
+import imageCompression from "browser-image-compression";
 
-const model = defineModel()
-const emit = defineEmits(['change'])
-const props = defineProps(['label'])
-const label = props.label
+const props = defineProps(["label", "url"]);
+const emit = defineEmits(["change"]);
+const model = defineModel();
+const label = props.label;
+const url = props.url;
+
+const uploading = ref(false)
+const progress = ref(0)
 
 async function upload(e) {
-	var file = e.files[0];
-	if (!file) {
-		return;
-	}
+  var file = e.files[0];
+  if (!file) {
+    return;
+  }
 
-	let blob = await fetch(file.objectURL).then((r) => r.blob()); //blob:url
-	let reader = new FileReader();
-	reader.readAsDataURL(blob);
-	reader.onloadend = function () {
-		const base64data = reader.result;
-		setImage(base64data)
-	};
+  uploading.value = true
+  let blob = await fetch(file.objectURL).then((r) => r.blob()); //blob:url
+  let b64 = await compress(blob);
+  await uploadImage(b64);
+  uploading.value = false
 }
 
 async function paste(e) {
-	try {
-		const clipboard = await navigator.clipboard.read();
-		if (!clipboard) {
-			return;
-		}
+  try {
+    const clipboard = await navigator.clipboard.read();
+    if (!clipboard) {
+      console.log('no clipboard')
+      return;
+    }
+    
+    const file = clipboard[0];
+    const f = file.types.findIndex((t) => t.includes("image"));
 
-		const file = clipboard[0];
-		if (!file?.types[0].includes('image')) {
-			return;
-		}
+    if (!file?.types[f]?.includes("image")) {
+      console.log('no image')
+      console.log(file.types)
+      return;
+    }
+    
+    uploading.value = true
+    let blob = await file.getType(file.types[f]);
+    let b64 = await compress(blob);
+    await uploadImage(b64);
+  } catch (error) {
+    console.log(error)
 
-		console.log(typeof file)
-		console.log(Object.keys(file))
-
-		let blob = await file.getType(file.types[0])
-		let b64 = await compress(blob)
-		setImage(b64)
-	} catch (error) {
-
-	}
+  } finally {
+    uploading.value = false
+    progress.value = 0
+  }
 }
 
 async function compress(blob) {
-	return new Promise((resolve, reject) => {
-		let reader = new FileReader()
-		reader.readAsDataURL(blob)
-		reader.onloadend = function () {
-			const base64data = reader.result;
-			resolve(base64data)
-		}
-	})
-}
+  console.log("original size:", blob.size / 1024 / 1024 + " MB");
+  blob = await imageCompression(blob, {
+    maxSizeMB: 1,
+    maxWidthOrHeight: 1280,
+    useWebWorker: true,
+    onProgress: (p) => progress.value = p,
+  })
+  console.log("final size:", blob.size / 1024 / 1024 + " MB");
+
+  return blob
+  // const bf = await blob.arrayBuffer()
+  // const u = new Uint8Array(bf)
+  // return `[${u.toString()}]`
+
+  // return new Promise((resolve, reject) => {
+  //   let reader = new FileReader();
+  //   reader.readAsDataURL(blob);
+  //   reader.onloadend = function () {
+  //     let base64 = reader.result;
+  //     console.log(base64.length)
+      
+  //     // base64 = LZString.compressToBase64(base64)
+  //     console.log(base64.length)
+  //     resolve(base64);
+  //   };
+  // });
+} 
 
 async function del() {
-	setImage(null)
+  // uploadImage(null);
+  model.value = false;
+  emit("change");
 }
 
-async function setImage(img) {
-	model.value = img
-	emit('change')
+async function uploadImage(img) {
+  const formData = new FormData();
+  formData.append('file', img);
+
+  const res = await fetch(`http://localhost:26023/upload/${url}`, {
+    method: "POST",
+    mode: 'no-cors',
+    headers: {
+      "Content-Type": "application/json",
+
+    },
+    body: formData,
+  })
+
+  model.value = true;
+  emit("change");
 }
 
-
+function getImage() {
+  // return LZString.decompressFromBase64(model.value)
+  // return model.value
+  return `http://localhost:26023/static/`+url
+}
 </script>
 
 <template>
-	<div class="ssplaceholder flex flex-column flex-nowrap align-items-center justify-content-center align-content-center"
-		v-if="!model">
-		<div class="text-300 pb-2">{{ label }}</div>
-		<div class="flex flex-wrap">
-			<FileUpload class="file-select" mode="basic" accept="image/*" :maxFileSize="10000000" auto customUpload
-				@uploader="upload">
-				Select
-			</FileUpload>
-			<span class="px-2">or</span>
-			<Button type="button" label="Paste" class="file-paste" icon="pi pi-file-import" @click="paste" />
-		</div>
-	</div>
-	<div class="sswrapper" v-else>
-		<Image :src="model" width="100%" class="screenshot" preview />
-		<Button class="ssaction" type="button" icon="pi pi-minus-circle" severity="danger" size="small" text @click="del" />
-	</div>
+  <div
+    class="ssplaceholder flex flex-column flex-nowrap align-items-center justify-content-center align-content-center"
+    v-if="uploading"  
+  >
+    <ProgressBar :value="progress" :displayValue="true" style="width:70%" />
+  </div>
+  <div
+    class="ssplaceholder flex flex-column flex-nowrap align-items-center justify-content-center align-content-center"
+    v-else-if="!model"
+  >
+    <div class="text-300 pb-2">{{ label }}</div>
+    <div class="flex flex-wrap">
+      <FileUpload
+        class="file-select"
+        mode="basic"
+        accept="image/*"
+        :maxFileSize="10000000"
+        auto
+        customUpload
+        @uploader="upload"
+      >
+        Select
+      </FileUpload>
+      <span class="px-2">or</span>
+      <Button
+        type="button"
+        label="Paste"
+        class="file-paste"
+        icon="pi pi-file-import"
+        @click="paste"
+      />
+    </div>
+  </div>
+  <div class="sswrapper" v-else>
+    <Image :src="getImage()" width="100%" class="screenshot" preview />
+    <Button
+      class="ssaction"
+      type="button"
+      icon="pi pi-minus-circle"
+      severity="danger"
+      size="small"
+      text
+      @click="del"
+    />
+  </div>
 </template>
-
 
 <style scoped>
 .ssplaceholder {
-	padding: 10px;
-	width: 100%;
-	aspect-ratio: auto 16/9;
-	background: #222;
+  padding: 10px;
+  width: 100%;
+  aspect-ratio: auto 16/9;
+  background: #222;
 }
 
 .sswrapper {
-	position: relative;
+  position: relative;
 }
 
 .ssaction {
-	position: absolute;
-	top: 5px;
-	right: 5px;
+  position: absolute;
+  top: 5px;
+  right: 5px;
 }
 </style>
