@@ -11,10 +11,11 @@ OK - Diminuir tamanho das imagens no upload (?)
 OK - Adicionar extensão na image
 OK - Adicionar highlight na variant selecionada
 OK - Adicionar conexão entre variante e nade
+OK - Deletar arquivo local na remoção da variante
+OK - Deletar variantes na remocao da nade
+OK - Selecionar nade ao criá-la
 
 - Adicionar filtro de tipos de nade
-- Deletar arquivo local na remoção da variante
-- Deletar variantes na remocao da nade
 
 - Melhorar o botao de back
 - Adicionar numero de variantes na nade
