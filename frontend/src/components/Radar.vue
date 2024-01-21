@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, onUnmounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { DeleteNade, DeleteVariant, GetAllNades, GetAllVariants, InsertNade, InsertVariant, UpdateNade, UpdateVariant } from '../../wailsjs/go/main/App'
 import { useConfirm } from "primevue/useconfirm";
 import ContextMenu from 'primevue/contextmenu'
@@ -10,8 +10,15 @@ import Konva from 'konva';
 
 const emit = defineEmits(['nadeSelected', 'variantSelected'])
 
-const props = defineProps(['map'])
+const props = defineProps(['map', 'filter'])
 const map = props.map
+const filter = props.filter
+
+watch(props.filter, () => {
+  console.log('filter changed')
+  clear()
+  applyFilter()
+}, { deep: true })
 
 defineExpose({
 	deleteNadeNode,
@@ -29,10 +36,12 @@ const HEIGHT = 1200;
 
 let mode = 'nade' // nade, variant
 let loading = ref(false)
+let nades = []
 let nadeNodes = []
 let variantNodes = []
 let selectedNadeNode = null
 let selectedVariantNode = null
+
 
 let contextPosition = { x: 0, y: 0 }
 const nadeContext = ref()
@@ -86,7 +95,15 @@ async function load() {
 	loading.value = false
 
 	res.forEach(nade => {
-		addNade(nade)
+    nades.push(nade)
+  })
+  applyFilter()
+}
+
+function applyFilter() {
+	nades.forEach(nade => {
+    if (filter === null || !filter.length || filter.includes(nade.type))
+		  addNade(nade)
 	})
 }
 
@@ -253,9 +270,8 @@ async function setMode(m) {
 		const res = await GetAllNades(map)
 		loading.value = false
 
-		res.forEach(nade => {
-			addNade(nade)
-		})
+    nades = res
+    applyFilter()
 
 	} else if (mode === 'variant') {
 		const nade = selectedNadeNode.getAttr('nade')

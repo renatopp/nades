@@ -19,6 +19,13 @@ var radar = ref()
 var map = ref(null)
 var selectedNade = ref(null)
 var selectedVariant = ref(null)
+var filter = ref(null)
+var filterOptions = ref([
+  { name: 'Smoke', value: 'smoke' },
+  { name: 'Molly', value: 'molly' },
+  { name: 'Flash', value: 'flash' },
+  { name: 'He', value: 'he' }
+])
 
 onMounted(() => {
 	map.value = router.currentRoute.value.params.mapId
@@ -61,7 +68,6 @@ function back() {
 	<div class="operation">
 		<a class="link" @click="back" href="" style="z-index: 100;">
       <div>
-
         <i class="pi pi-angle-left" style="font-size: 1.5rem"></i>
       </div>
 			<!-- {{ map }} -->
@@ -71,7 +77,7 @@ function back() {
 	<div class="flex align-items-stretch justify-content-center h-screen w-screen">
 		<div class="radar flex-1 align-items-center">
 			<Suspense>
-				<Radar ref="radar" :map="map" @nade-selected="selectNade" @variant-selected="selectVariant" v-if="map" />
+				<Radar ref="radar" :map="map" :filter="filter" @nade-selected="selectNade" @variant-selected="selectVariant" v-if="map" />
 			</Suspense>
 		</div>
 		<div class="form flex-1 align-items-center" v-if="map">
@@ -79,6 +85,7 @@ function back() {
 			<!-- NO NADE SELECTED -->
 			<div v-if="!selectedNade">
 				<h4>Select a nade</h4>
+        <select-button v-model="filter" :options="filterOptions" multiple option-label="name" option-value="value"/>
 			</div>
 
 			<!-- NO VARIANT SELECTED -->
