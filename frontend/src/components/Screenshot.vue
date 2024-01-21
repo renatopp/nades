@@ -35,7 +35,6 @@ async function paste(e) {
   try {
     const clipboard = await navigator.clipboard.read();
     if (!clipboard) {
-      console.log('no clipboard')
       return;
     }
     
@@ -43,8 +42,6 @@ async function paste(e) {
     const f = file.types.findIndex((t) => t.includes("image"));
 
     if (!file?.types[f]?.includes("image")) {
-      console.log('no image')
-      console.log(file.types)
       return;
     }
     
@@ -97,10 +94,12 @@ async function del() {
 }
 
 async function uploadImage(img) {
+  const ext = getExtension(img);
+
   const formData = new FormData();
   formData.append('file', img);
 
-  const res = await fetch(`http://localhost:26023/upload/${url}`, {
+  const res = await fetch(`http://localhost:26023/upload/${url}.${ext}`, {
     method: "POST",
     mode: 'no-cors',
     headers: {
@@ -110,14 +109,19 @@ async function uploadImage(img) {
     body: formData,
   })
 
-  model.value = true;
+  model.value = ext;
   emit("change");
 }
 
 function getImage() {
   // return LZString.decompressFromBase64(model.value)
   // return model.value
-  return `http://localhost:26023/static/`+url
+  return `http://localhost:26023/static/`+url+`.`+model.value
+}
+
+function getExtension(blob) {
+  const mime = blob.type;
+  return mime.split('/')[1];
 }
 </script>
 

@@ -47,9 +47,9 @@ type Variant struct {
 	Description   string `clover:"description" json:"description"`
 	X             int    `clover:"x" json:"x"`
 	Y             int    `clover:"y" json:"y"`
-	ThrowImage    bool   `clover:"throw_image" json:"throwImage"`
-	LineupImage   bool   `clover:"lineup_image" json:"lineupImage"`
-	PositionImage bool   `clover:"position_image" json:"positionImage"`
+	ThrowImage    string `clover:"throw_image" json:"throwImage"`
+	LineupImage   string `clover:"lineup_image" json:"lineupImage"`
+	PositionImage string `clover:"position_image" json:"positionImage"`
 }
 
 func (v *Variant) ToDB() *document.Document {

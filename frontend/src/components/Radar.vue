@@ -233,7 +233,12 @@ async function selectNadeNode(node) {
 }
 
 async function selectVariantNode(node) {
+  if (selectedVariantNode !== null) {
+    selectedVariantNode.strokeWidth(0)
+  }
+
 	selectedVariantNode = node
+	selectedVariantNode?.strokeWidth(2)
 	emit('variantSelected', node?.getAttr('variant'), node?.getAttr('nade'))
 }
 
@@ -260,6 +265,7 @@ async function setMode(m) {
 		loading.value = false
 
 		addNade(nade)
+
 		selectedVariantNode = null
 		for (const variant of res) {
 			const v = await addVariant(variant)
@@ -281,10 +287,10 @@ async function createNadeOnMouse(type) {
 
 	nade.id = await InsertNade(nade)
 
-	return addNade(nade)
+	return addNade(nade, true)
 }
 
-async function addNade(nade) {
+async function addNade(nade, select) {
 	const x = (sop(nade.x) / stage.scaleX()) - (stage.x() / stage.scaleX())
 	const y = (sop(nade.y) / stage.scaleY()) - (stage.y() / stage.scaleY())
 
@@ -299,16 +305,26 @@ async function addNade(nade) {
 			draggable: true,
 			nade: nade
 		});
+		node.on('dragmove', (e) => {
+      selectedNadeNode = node
+      updateLinks(null, node)
+    })
 		node.on('dragend', (e) => {
+      selectedNadeNode = node
 			nade.x = pos(e.target.x() * stage.scaleX() + stage.x())
 			nade.y = pos(e.target.y() * stage.scaleY() + stage.y())
 			UpdateNade(nade)
+      updateLinks(null, node)
 		})
 
 		layerIcons.add(node);
 		layerIcons.draw();
 
 		nadeNodes.push(node)
+
+    if (select) {
+      selectNadeNode(node)
+    }
 	});
 }
 
@@ -331,6 +347,14 @@ async function addVariant(variant) {
 	const x = (sop(variant.x) / stage.scaleX()) - (stage.x() / stage.scaleX())
 	const y = (sop(variant.y) / stage.scaleY()) - (stage.y() / stage.scaleY())
 
+  const link = new Konva.Line({
+    points: [0, 0, 0, 0],
+    stroke: 'white',
+    strokeWidth: 1,
+    lineCap: 'round',
+    lineJoin: 'round',
+  });
+
 	var circle = new Konva.Circle({
 		x,
 		y,
@@ -338,14 +362,23 @@ async function addVariant(variant) {
 		fill: 'red',
 		draggable: true,
 		variant: variant,
-		nade: selectedNadeNode.getAttr('nade')
+    stroke: 'white',
+		nade: selectedNadeNode.getAttr('nade'),
+    link, 
 	});
+  circle.on('dragmove', (e) => {
+    updateLinks(circle)
+  })
 	circle.on('dragend', (e) => {
 		variant.x = pos(e.target.x() * stage.scaleX() + stage.x())
 		variant.y = pos(e.target.y() * stage.scaleY() + stage.y())
 		UpdateVariant(variant)
+    updateLinks(circle)
 	})
 
+  link.points([selectedNadeNode.x(), selectedNadeNode.y(), circle.x(), circle.y()])
+
+	layerIcons.add(link);
 	layerIcons.add(circle);
 	layerIcons.draw();
 	variantNodes.push(circle)
@@ -399,6 +432,20 @@ async function deleteVariantNode() {
 		},
 		reject: () => { }
 	});
+}
+
+async function updateLinks(variant, node) {
+  if (!selectedNadeNode) return
+  const variants = !!variant? [variant] : variantNodes
+  node = !!node? node : selectedNadeNode
+
+  for (const variant of variants) {
+    const link = variant.getAttr('link')
+
+    link.points([node.x(), node.y(), variant.x(), variant.y()])
+  }
+  
+  layerIcons.draw()
 }
 
 function pos(x) {

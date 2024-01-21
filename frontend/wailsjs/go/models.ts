@@ -27,9 +27,9 @@ export namespace main {
 	    description: string;
 	    x: number;
 	    y: number;
-	    throwImage: boolean;
-	    lineupImage: boolean;
-	    positionImage: boolean;
+	    throwImage: string;
+	    lineupImage: string;
+	    positionImage: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new Variant(source);

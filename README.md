@@ -8,11 +8,13 @@ OK - Arrumar tela principal
 OK - Adicionar botão de voltar para tela principal
 OK - Adicionar zoom nas imagens
 OK - Diminuir tamanho das imagens no upload (?)
+OK - Adicionar extensão na image
+OK - Adicionar highlight na variant selecionada
+OK - Adicionar conexão entre variante e nade
 
 - Adicionar filtro de tipos de nade
-- Adicionar highlight na variant selecionada
-- Adicionar conexão entre variante e nade
-- Adicionar extensão na image
+- Deletar arquivo local na remoção da variante
+- Deletar variantes na remocao da nade
 
 - Melhorar o botao de back
 - Adicionar numero de variantes na nade

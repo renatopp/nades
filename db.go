@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"os"
 
 	"github.com/ostafen/clover/v2"
 	"github.com/ostafen/clover/v2/query"
@@ -86,9 +87,31 @@ func (d *DB) UpdateVariant(variant Variant) {
 }
 
 func (d *DB) DeleteNade(id string) {
+	variants := d.FindVariants(id)
+	for _, variant := range variants {
+		d.DeleteVariant(variant.Id)
+	}
+
 	d.db.DeleteById("nades", id)
 }
 
 func (d *DB) DeleteVariant(id string) {
+	doc, _ := d.db.FindById("variants", id)
+	if doc == nil {
+		return
+	}
+
+	variant := Variant{}
+	doc.Unmarshal(&variant)
+
+	doc, _ = d.db.FindById("nades", variant.NadeId)
+	if doc != nil {
+		nade := Nade{}
+		doc.Unmarshal(&nade)
+
+		d := ".screenshots/" + nade.Map + "/" + variant.Id
+		os.RemoveAll(d)
+	}
+
 	d.db.DeleteById("variants", id)
 }
