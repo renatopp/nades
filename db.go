@@ -3,6 +3,8 @@ package main
 import (
 	"log"
 	"os"
+	"strings"
+	"time"
 
 	"github.com/ostafen/clover/v2"
 	"github.com/ostafen/clover/v2/query"
@@ -83,6 +85,35 @@ func (d *DB) UpdateNade(nade Nade) {
 }
 
 func (d *DB) UpdateVariant(variant Variant) {
+	old, _ := d.db.FindById("variants", variant.Id)
+	if old == nil {
+		return
+	}
+
+	vt := Variant{}
+	old.Unmarshal(&vt)
+
+	if vt.Map == "" {
+		nodeDoc, _ := d.db.FindById("nades", variant.NadeId)
+		m := nodeDoc.Get("map").(string)
+		vt.Map = m
+		variant.Map = m
+	}
+
+	println("Updating", vt.ThrowImage, variant.ThrowImage, vt.Map)
+	if vt.ThrowImage != "" && variant.ThrowImage == "" {
+		println("Should delete throw image")
+		deleteVariantImage(variant.Map, variant.Id, "throw", vt.ThrowImage)
+	}
+	if vt.LineupImage != "" && variant.LineupImage == "" {
+		println("Should delete lineup image")
+		deleteVariantImage(variant.Map, variant.Id, "lineup", vt.ThrowImage)
+	}
+	if vt.PositionImage != "" && variant.PositionImage == "" {
+		println("Should delete position image")
+		deleteVariantImage(variant.Map, variant.Id, "position", vt.ThrowImage)
+	}
+
 	d.db.UpdateById("variants", variant.Id, variant.Update)
 }
 
@@ -114,4 +145,24 @@ func (d *DB) DeleteVariant(id string) {
 	}
 
 	d.db.DeleteById("variants", id)
+}
+
+func deleteVariantImage(m, variant, tp, extension string) {
+	if !strings.Contains(extension, ".") {
+		extension = "." + extension
+	}
+
+	d := ".screenshots/" + m + "/" + variant + "/" + tp + extension
+	println("Removing", d)
+	go func() {
+		for i := 0; i < 10; i++ {
+			err := os.Remove(d)
+			if err != nil {
+				println(err.Error())
+				time.Sleep(time.Duration(i+1) * time.Second)
+				continue
+			}
+			return
+		}
+	}()
 }

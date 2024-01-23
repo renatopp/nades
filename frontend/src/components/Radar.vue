@@ -10,15 +10,9 @@ import Konva from 'konva';
 
 const emit = defineEmits(['nadeSelected', 'variantSelected'])
 
-const props = defineProps(['map', 'filter'])
-const map = props.map
-const filter = props.filter
-
-watch(props.filter, () => {
-  console.log('filter changed')
-  clear()
-  applyFilter()
-}, { deep: true })
+const props = defineProps(['map', 'filters'])
+const map = ref(props.map)
+const filters = ref(props.filters)
 
 defineExpose({
 	deleteNadeNode,
@@ -41,7 +35,7 @@ let nadeNodes = []
 let variantNodes = []
 let selectedNadeNode = null
 let selectedVariantNode = null
-
+let initialized = false
 
 let contextPosition = { x: 0, y: 0 }
 const nadeContext = ref()
@@ -69,12 +63,25 @@ const variantNodeContextActions = ref([
 	{ label: 'Delete', icon: 'pi pi-trash', command: () => deleteVariantNode() },
 ])
 
+watch(props, () => {
+	console.log('filter changed')
+	map.value = props.map
+	filters.value = props.filters
+
+	if (initialized) {
+		clear()
+		applyFilter()
+	}
+}, { immediate: true, deep: true })
+
+
 onMounted(async () => {
 	startup()
 	onResize()
 	window.addEventListener('resize', onResize)
 
 	await load()
+	initialized = true
 });
 
 onUnmounted(async () => {
@@ -91,19 +98,19 @@ function getIconUrl(id) {
 
 async function load() {
 	loading.value = true
-	const res = await GetAllNades(map)
+	const res = await GetAllNades(map.value)
 	loading.value = false
 
 	res.forEach(nade => {
-    nades.push(nade)
-  })
-  applyFilter()
+		nades.push(nade)
+	})
+	applyFilter()
 }
 
 function applyFilter() {
 	nades.forEach(nade => {
-    if (filter === null || !filter.length || filter.includes(nade.type))
-		  addNade(nade)
+		if (filters === null || filters.value === null || !filters.value.length || filters.value.includes(nade.type))
+			addNade(nade)
 	})
 }
 
@@ -117,7 +124,7 @@ function startup() {
 	layerMap = new Konva.Layer();
 	layerIcons = new Konva.Layer();
 
-	Konva.Image.fromURL(getRadarBgUrl(map), function (node) {
+	Konva.Image.fromURL(getRadarBgUrl(map.value), function (node) {
 		node.setAttrs({
 			x: 0,
 			y: 0,
@@ -250,9 +257,9 @@ async function selectNadeNode(node) {
 }
 
 async function selectVariantNode(node) {
-  if (selectedVariantNode !== null) {
-    selectedVariantNode.strokeWidth(0)
-  }
+	if (selectedVariantNode !== null) {
+		selectedVariantNode.strokeWidth(0)
+	}
 
 	selectedVariantNode = node
 	selectedVariantNode?.strokeWidth(2)
@@ -267,11 +274,11 @@ async function setMode(m) {
 		selectNadeNode(null)
 
 		loading.value = true
-		const res = await GetAllNades(map)
+		const res = await GetAllNades(map.value)
 		loading.value = false
 
-    nades = res
-    applyFilter()
+		nades = res
+		applyFilter()
 
 	} else if (mode === 'variant') {
 		const nade = selectedNadeNode.getAttr('nade')
@@ -295,7 +302,7 @@ async function setMode(m) {
 async function createNadeOnMouse(type) {
 	const nade = {
 		id: null,
-		map: map,
+		map: map.value,
 		type: type,
 		x: pos(contextPosition.x),
 		y: pos(contextPosition.y),
@@ -322,15 +329,15 @@ async function addNade(nade, select) {
 			nade: nade
 		});
 		node.on('dragmove', (e) => {
-      selectedNadeNode = node
-      updateLinks(null, node)
-    })
+			selectedNadeNode = node
+			updateLinks(null, node)
+		})
 		node.on('dragend', (e) => {
-      selectedNadeNode = node
+			selectedNadeNode = node
 			nade.x = pos(e.target.x() * stage.scaleX() + stage.x())
 			nade.y = pos(e.target.y() * stage.scaleY() + stage.y())
 			UpdateNade(nade)
-      updateLinks(null, node)
+			updateLinks(null, node)
 		})
 
 		layerIcons.add(node);
@@ -338,9 +345,9 @@ async function addNade(nade, select) {
 
 		nadeNodes.push(node)
 
-    if (select) {
-      selectNadeNode(node)
-    }
+		if (select) {
+			selectNadeNode(node)
+		}
 	});
 }
 
@@ -348,6 +355,7 @@ async function createVariantToMouse() {
 	const variant = {
 		id: null,
 		nadeId: selectedNadeNode.getAttr('nade').id,
+		map: map.value,
 		name: 'New Variant',
 		description: 'No description',
 		x: pos(contextPosition.x),
@@ -363,13 +371,13 @@ async function addVariant(variant) {
 	const x = (sop(variant.x) / stage.scaleX()) - (stage.x() / stage.scaleX())
 	const y = (sop(variant.y) / stage.scaleY()) - (stage.y() / stage.scaleY())
 
-  const link = new Konva.Line({
-    points: [0, 0, 0, 0],
-    stroke: 'white',
-    strokeWidth: 1,
-    lineCap: 'round',
-    lineJoin: 'round',
-  });
+	const link = new Konva.Line({
+		points: [0, 0, 0, 0],
+		stroke: 'white',
+		strokeWidth: 1,
+		lineCap: 'round',
+		lineJoin: 'round',
+	});
 
 	var circle = new Konva.Circle({
 		x,
@@ -378,21 +386,21 @@ async function addVariant(variant) {
 		fill: 'red',
 		draggable: true,
 		variant: variant,
-    stroke: 'white',
+		stroke: 'white',
 		nade: selectedNadeNode.getAttr('nade'),
-    link, 
+		link,
 	});
-  circle.on('dragmove', (e) => {
-    updateLinks(circle)
-  })
+	circle.on('dragmove', (e) => {
+		updateLinks(circle)
+	})
 	circle.on('dragend', (e) => {
 		variant.x = pos(e.target.x() * stage.scaleX() + stage.x())
 		variant.y = pos(e.target.y() * stage.scaleY() + stage.y())
 		UpdateVariant(variant)
-    updateLinks(circle)
+		updateLinks(circle)
 	})
 
-  link.points([selectedNadeNode.x(), selectedNadeNode.y(), circle.x(), circle.y()])
+	link.points([selectedNadeNode.x(), selectedNadeNode.y(), circle.x(), circle.y()])
 
 	layerIcons.add(link);
 	layerIcons.add(circle);
@@ -451,17 +459,17 @@ async function deleteVariantNode() {
 }
 
 async function updateLinks(variant, node) {
-  if (!selectedNadeNode) return
-  const variants = !!variant? [variant] : variantNodes
-  node = !!node? node : selectedNadeNode
+	if (!selectedNadeNode) return
+	const variants = !!variant ? [variant] : variantNodes
+	node = !!node ? node : selectedNadeNode
 
-  for (const variant of variants) {
-    const link = variant.getAttr('link')
+	for (const variant of variants) {
+		const link = variant.getAttr('link')
 
-    link.points([node.x(), node.y(), variant.x(), variant.y()])
-  }
-  
-  layerIcons.draw()
+		link.points([node.x(), node.y(), variant.x(), variant.y()])
+	}
+
+	layerIcons.draw()
 }
 
 function pos(x) {

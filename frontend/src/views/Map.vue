@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, onUnmounted, ref } from 'vue'
+import { onMounted, onUnmounted, reactive, ref, watch } from 'vue'
 import InputText from 'primevue/inputtext';
 import Textarea from 'primevue/textarea';
 import Button from 'primevue/button';
@@ -19,12 +19,12 @@ var radar = ref()
 var map = ref(null)
 var selectedNade = ref(null)
 var selectedVariant = ref(null)
-var filter = ref(null)
+var filter = ref([])
 var filterOptions = ref([
-  { name: 'Smoke', value: 'smoke' },
-  { name: 'Molly', value: 'molly' },
-  { name: 'Flash', value: 'flash' },
-  { name: 'He', value: 'he' }
+	{ name: 'Smoke', value: 'smoke' },
+	{ name: 'Molly', value: 'molly' },
+	{ name: 'Flash', value: 'flash' },
+	{ name: 'He', value: 'he' }
 ])
 
 onMounted(() => {
@@ -42,7 +42,7 @@ function selectVariant(variant, nade) {
 }
 
 function updateVariant() {
-  console.log(selectedVariant.value)
+	console.log(selectedVariant.value)
 	UpdateVariant(selectedVariant.value)
 }
 
@@ -55,37 +55,37 @@ function deleteNade() {
 }
 
 function getImageEndpoint(type) {
-  return `${map.value}/${selectedVariant.value.id}/${type}`
+	return `${map.value}/${selectedVariant.value.id}/${type}`
 }
 
 function back() {
-  location.replace("/");
+	location.replace("/");
 }
-
 </script>
 
 <template>
 	<div class="operation">
 		<a class="link" @click="back" href="" style="z-index: 100;">
-      <div>
-        <i class="pi pi-angle-left" style="font-size: 1.5rem"></i>
-      </div>
+			<div>
+				<i class="pi pi-angle-left" style="font-size: 1.5rem"></i>
+			</div>
 			<!-- {{ map }} -->
 		</a>
 	</div>
 
 	<div class="flex align-items-stretch justify-content-center h-screen w-screen">
 		<div class="radar flex-1 align-items-center">
-			<Suspense>
-				<Radar ref="radar" :map="map" :filter="filter" @nade-selected="selectNade" @variant-selected="selectVariant" v-if="map" />
-			</Suspense>
+			<Radar ref="radar" :map="map" :filters="filter" @nade-selected="selectNade" @variant-selected="selectVariant"
+				v-if="map" />
 		</div>
 		<div class="form flex-1 align-items-center" v-if="map">
 
 			<!-- NO NADE SELECTED -->
-			<div v-if="!selectedNade">
-				<h4>Select a nade</h4>
-        <select-button v-model="filter" :options="filterOptions" multiple option-label="name" option-value="value"/>
+			<div v-if="!selectedNade" class="text-center">
+				<div class="py-8">
+					<select-button v-model="filter" :options="filterOptions" multiple option-label="name" option-value="value" />
+					<p class="text-200 text-sm">Right click in the map to create a nade.</p>
+				</div>
 			</div>
 
 			<!-- NO VARIANT SELECTED -->
@@ -101,7 +101,8 @@ function back() {
 
 			<!-- VARIANT SELECTED -->
 			<div v-if="selectedNade && selectedVariant">
-				<Screenshot label="Throw Image" :url="getImageEndpoint('throw')" v-model="selectedVariant.throwImage" @change="updateVariant" />
+				<Screenshot label="Throw Image" :crosshair="true" :magnify="true" :url.sync="getImageEndpoint('throw')"
+					v-model="selectedVariant.throwImage" @change="updateVariant" />
 
 				<div>
 					<div class="flex">
@@ -119,10 +120,12 @@ function back() {
 
 				<div class="flex gap-2">
 					<div class="flex-1">
-						<Screenshot label="Lineup Image" :url="getImageEndpoint('lineup')" v-model="selectedVariant.lineupImage" @change="updateVariant" />
+						<Screenshot label="Lineup Image" :crosshair="true" :magnify="true" :url="getImageEndpoint('lineup')"
+							v-model="selectedVariant.lineupImage" @change="updateVariant" />
 					</div>
 					<div class="flex-1">
-						<Screenshot label="Position Image" :url="getImageEndpoint('position')" v-model="selectedVariant.positionImage" @change="updateVariant" />
+						<Screenshot label="Position Image" :url="getImageEndpoint('position')" v-model="selectedVariant.positionImage"
+							@change="updateVariant" />
 					</div>
 				</div>
 			</div>

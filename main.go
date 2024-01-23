@@ -4,6 +4,7 @@ import (
 	"embed"
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/cors"
@@ -35,6 +36,13 @@ func GuaranteePath(path string) error {
 
 func main() {
 
+	ex, err := os.Executable()
+	if err != nil {
+		panic(err)
+	}
+	exPath := filepath.Dir(ex)
+	GuaranteePath(exPath + "/.screenshots")
+
 	happ := fiber.New()
 	happ.Get("/", func(c fiber.Ctx) error {
 		return c.SendString("Hello, World 👋!")
@@ -45,8 +53,8 @@ func main() {
 			return err
 		}
 
-		path := fmt.Sprintf("./.screenshots/%s/%s", c.Params("map"), c.Params("variant"))
-		destination := fmt.Sprintf("./.screenshots/%s/%s/%s", c.Params("map"), c.Params("variant"), c.Params("type"))
+		path := fmt.Sprintf(exPath+"/.screenshots/%s/%s", c.Params("map"), c.Params("variant"))
+		destination := fmt.Sprintf(exPath+"/.screenshots/%s/%s/%s", c.Params("map"), c.Params("variant"), c.Params("type"))
 		if err := GuaranteePath(path); err != nil {
 			return err
 		}
@@ -58,7 +66,7 @@ func main() {
 		c.SendStatus(200)
 		return c.SendString("ok")
 	})
-	happ.Static("/static", "./.screenshots/")
+	happ.Static("/static", exPath+"/.screenshots/")
 	happ.Use(cors.New(cors.Config{
 		AllowOriginsFunc: func(origin string) bool {
 			return true
@@ -70,8 +78,8 @@ func main() {
 	app := NewApp()
 
 	// Create application with options
-	err := wails.Run(&options.App{
-		Title:  "CAPIVARA NADELOG",
+	err = wails.Run(&options.App{
+		Title:  "Nade Catalog",
 		Width:  1024,
 		Height: 768,
 		AssetServer: &assetserver.Options{

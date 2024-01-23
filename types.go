@@ -44,6 +44,7 @@ type Variant struct {
 	Id            string `clover:"_id" json:"id"`
 	NadeId        string `clover:"nade_id" json:"nadeId"`
 	Name          string `clover:"name" json:"name"`
+	Map           string `clover:"map" json:"map"`
 	Description   string `clover:"description" json:"description"`
 	X             int    `clover:"x" json:"x"`
 	Y             int    `clover:"y" json:"y"`

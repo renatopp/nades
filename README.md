@@ -14,8 +14,8 @@ OK - Adicionar conexão entre variante e nade
 OK - Deletar arquivo local na remoção da variante
 OK - Deletar variantes na remocao da nade
 OK - Selecionar nade ao criá-la
-
-- Adicionar filtro de tipos de nade
+OK - Fix de quando nade tem mais de uma variant
+OK - Adicionar filtro de tipos de nade
 
 - Melhorar o botao de back
 - Adicionar numero de variantes na nade

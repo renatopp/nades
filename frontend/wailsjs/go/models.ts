@@ -24,6 +24,7 @@ export namespace main {
 	    id: string;
 	    nadeId: string;
 	    name: string;
+	    map: string;
 	    description: string;
 	    x: number;
 	    y: number;
@@ -40,6 +41,7 @@ export namespace main {
 	        this.id = source["id"];
 	        this.nadeId = source["nadeId"];
 	        this.name = source["name"];
+	        this.map = source["map"];
 	        this.description = source["description"];
 	        this.x = source["x"];
 	        this.y = source["y"];
